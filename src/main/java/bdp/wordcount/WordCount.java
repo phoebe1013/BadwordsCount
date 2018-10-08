@@ -51,9 +51,14 @@ public class WordCount
 			}
 		}
 
+		public List<Map<String, Object>> getjsonContent(String json){
+
+		}
+
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-			JSONObject json = new JSONObject(value);
+			List<Map<String, Object>> content = getjsonContent(value.toString());
+
 
 		}
 	}
