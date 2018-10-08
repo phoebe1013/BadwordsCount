@@ -1,7 +1,10 @@
 package bdp.wordcount;
 
+import java.util.List;
+import java.util.Map;
+
 public class test {
-    public  method(String s){
+    public List<Map<String, Object>> method(String s){
 
     }
 
