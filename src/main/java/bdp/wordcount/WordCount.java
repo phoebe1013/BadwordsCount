@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import com.uttesh.exude.ExudeData;
+import com.uttesh.exude.exception.InvalidDataException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -14,16 +16,14 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.json.JSONObject;
 
-/**
- * A very simple word count :)
- *
- */
-public class WordCount 
+
+public class WordCount
 {
 
-	public static class TokenizerMapper extends Mapper<Object, Text,  Text, IntWritable> {
+	public static class BadwordCountMapper extends Mapper<Object, Text,  Text, IntWritable> {
 		private final static IntWritable one = new IntWritable(1);
 		private Text word = new Text();
 		Map<String, List<String>> dicmap = new HashMap<>();
@@ -51,23 +51,47 @@ public class WordCount
 			}
 		}
 
-		public List<Map<String, Object>> getjsonContent(String json){
+		public Map<String, Object> getjsonContent(String json){
 
 		}
 
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-			List<Map<String, Object>> content = getjsonContent(value.toString());
-
-
+			Map<String, Object> content = getjsonContent(value.toString());
+			try {
+				String words = ExudeData.getInstance().filterStoppings(content.get("body").toString());
+				for(String s : words.split("\\s+")){
+					if (dicmap.containsKey(s)) {
+						word.set(s);
+						context.write(word, one);
+					}
+				}
+			} catch (InvalidDataException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
-	public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+	public static class BadwordCountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 		private IntWritable result = new IntWritable();
+		private MultipleOutputs<Text, IntWritable> mos;
+
+		@Override
+		public void setup(Context context){
+			mos = new MultipleOutputs<>(context);
+		}
 
 		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+			int sum = 0;
+			for (IntWritable i : values)
+				sum += i.get();
+			result.set(sum);
 
+		}
+
+		@Override
+		public void cleanup(Context context) throws IOException, InterruptedException {
+			mos.close();
 		}
 	}
 
@@ -76,9 +100,9 @@ public class WordCount
     	conf.set("swearwords", args[2]);
     	Job job = Job.getInstance(conf, "word count");
 	    job.setJarByClass(WordCount.class);
-	    job.setMapperClass(TokenizerMapper.class);
-	    job.setCombinerClass(IntSumReducer.class);
-	    job.setReducerClass(IntSumReducer.class);
+	    job.setMapperClass(BadwordCountMapper.class);
+	    job.setCombinerClass(BadwordCountReducer.class);
+	    job.setReducerClass(BadwordCountReducer.class);
 	    job.setOutputKeyClass(Text.class);
 	    job.setOutputValueClass(IntWritable.class);
 	    FileInputFormat.addInputPath(job, new Path(args[0]));
