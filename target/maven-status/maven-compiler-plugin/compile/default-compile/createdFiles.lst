@@ -1,3 +1,4 @@
-bdp\wordcount\WordCount$IntSumReducer.class
-bdp\wordcount\WordCount$TokenizerMapper.class
+bdp\wordcount\JsonObject.class
+bdp\wordcount\WordCount$BadwordCountMapper.class
 bdp\wordcount\WordCount.class
+bdp\wordcount\WordCount$BadwordCountReducer.class
