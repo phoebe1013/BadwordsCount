@@ -4,6 +4,7 @@ public class JsonObject {
     private String author;
     private String body;
     private String selftext;
+    private String subreddit;
 
     public String getSelftext() {
         return selftext;
@@ -12,9 +13,6 @@ public class JsonObject {
     public void setSelftext(String selftext) {
         this.selftext = selftext;
     }
-
-    private String subreddit;
-
 
     public String getAuthor() {
         return author;

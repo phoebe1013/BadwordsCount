@@ -1,16 +1,16 @@
 package bdp.wordcount;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.uttesh.exude.ExudeData;
 import com.uttesh.exude.exception.InvalidDataException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -36,7 +36,10 @@ public class WordCount
 			Configuration config = context.getConfiguration();
 			String dicPath = config.get("swearwords");
 			try {
-				BufferedReader br = new BufferedReader(new FileReader(dicPath));
+				Path path = new Path(dicPath);
+				FileSystem fs = path.getFileSystem(config);
+				InputStream in = fs.open(path);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
 				String line = br.readLine();
 
 				while (line != null) {
@@ -51,6 +54,7 @@ public class WordCount
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 		}
 
 		public Map<String, Object> getjsonContent(String json){
@@ -85,16 +89,16 @@ public class WordCount
 				for(String s : words.split("\\s+")){
 					if (dicmap.containsKey(s)) {
 						if (!isbadbysubre) {
-							word.set(subreddit);
+							word.set("subr_" + subreddit);
 							context.write(word, one);
 							isbadbysubre = true;
 						}
 						if (!isbadbyauthor) {
-							word.set(author);
+							word.set("auth_" + author);
 							context.write(word, one);
 							isbadbyauthor = true;
 						}
-						word.set(s);
+						word.set("word_" + s);
 						context.write(word, one);
 					}
 				}
@@ -106,8 +110,6 @@ public class WordCount
 
 	public static class BadwordCountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 		private IntWritable result = new IntWritable();
-		private Set<String> subredditset = new HashSet<>();
-		private Set<String> authorset = new HashSet<>();
 		private MultipleOutputs<Text, IntWritable> mos;
 
 		@Override
@@ -120,12 +122,14 @@ public class WordCount
 			for (IntWritable i : values)
 				sum += i.get();
 			result.set(sum);
-			if (subredditset.contains(key.toString()))
-				mos.write("subreddit", key, result);
-			else if (authorset.contains(key.toString()))
-				mos.write("author", key, result);
+			String prefix = key.toString().substring(0, 4);
+			String keytext = key.toString().substring(5);
+			if (prefix.equals("subr"))
+				mos.write("subreddit", new Text(keytext), result);
+			else if (prefix.equals("auth"))
+				mos.write("author", new Text(keytext), result);
 			else
-				mos.write("count", key, result);
+				mos.write("count", new Text(keytext), result);
 		}
 
 		@Override
