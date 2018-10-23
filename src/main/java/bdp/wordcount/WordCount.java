@@ -7,8 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
-import com.uttesh.exude.ExudeData;
-import com.uttesh.exude.exception.InvalidDataException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -21,6 +19,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 
 public class WordCount
@@ -54,7 +56,6 @@ public class WordCount
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
 		}
 
 		public Map<String, Object> getjsonContent(String json){
@@ -77,16 +78,41 @@ public class WordCount
 			return map;
 		}
 
+		private List<String> filterstopwords(String rawwords){
+			List<String> words = new ArrayList<>();
+			Analyzer analyzer = new StandardAnalyzer();
+			TokenStream stream = null;
+			try {
+				stream = analyzer.tokenStream("content", new StringReader(rawwords));
+				CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
+				stream.reset();
+				while (stream.incrementToken())
+					words.add(attr.toString());
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			finally {
+				if(stream != null){
+					try {
+						stream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return words;
+		}
+
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 			Map<String, Object> content = getjsonContent(value.toString());
-			try {
-				String words = ExudeData.getInstance().filterStoppings((String) content.get("Body"));
+			List<String> words = filterstopwords((String) content.get("Body"));
 				String subreddit = (String) content.get("Subreddit");
 				String author = (String) content.get("Author");
 				boolean isbadbysubre = false;
 				boolean isbadbyauthor = false;
-				for(String s : words.split("\\s+")){
+				for(String s : words){
 					if (dicmap.containsKey(s)) {
 						if (!isbadbysubre) {
 							word.set("subr_" + subreddit);
@@ -102,9 +128,6 @@ public class WordCount
 						context.write(word, one);
 					}
 				}
-			} catch (InvalidDataException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 
