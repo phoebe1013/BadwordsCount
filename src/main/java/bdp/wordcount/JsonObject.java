@@ -5,6 +5,15 @@ public class JsonObject {
     private String body;
     private String selftext;
     private String subreddit;
+    private String title;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public String getSelftext() {
         return selftext;

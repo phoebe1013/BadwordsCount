@@ -1,4 +1,4 @@
 bdp\wordcount\JsonObject.class
-bdp\wordcount\WordCount$BadwordCountMapper.class
-bdp\wordcount\WordCount.class
-bdp\wordcount\WordCount$BadwordCountReducer.class
+bdp\wordcount\SubmissionCount$BadwordCountMapper.class
+bdp\wordcount\SubmissionCount.class
+bdp\wordcount\SubmissionCount$BadwordCountReducer.class
