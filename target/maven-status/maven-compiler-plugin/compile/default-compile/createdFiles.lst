@@ -1,4 +1,7 @@
+bdp\wordcount\CommentCount.class
+bdp\wordcount\WordCount$BadwordCountReducer.class
+bdp\wordcount\CommentCount$NormalizeCountMapper.class
 bdp\wordcount\JsonObject.class
-bdp\wordcount\SubmissionCount$BadwordCountMapper.class
-bdp\wordcount\SubmissionCount.class
-bdp\wordcount\SubmissionCount$BadwordCountReducer.class
+bdp\wordcount\WordCount$BadwordCountMapper.class
+bdp\wordcount\WordCount.class
+bdp\wordcount\CommentCount$NormalizeCountReducer.class
