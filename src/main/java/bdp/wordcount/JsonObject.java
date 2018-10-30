@@ -6,6 +6,8 @@ public class JsonObject {
     private String selftext;
     private String subreddit;
     private String title;
+    // Add "created_utc"
+    private String create;
 
     public String getTitle() {
         return title;
@@ -46,4 +48,11 @@ public class JsonObject {
     public void setSubreddit(String subreddit) {
         this.subreddit = subreddit;
     }
+
+    // Add "create_utc"
+    public String getCreate(){  return create; }
+
+    public void setCreate(String create) {  this.create = create; }
+
+
 }

@@ -19,6 +19,7 @@ import java.util.Map;
 public class CommentCount {
     public static class NormalizeCountMapper extends Mapper<Object, Text,  Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
+        private Text word = new Text();
         HashSet<String> subredditset = new HashSet<>();
         HashSet <String> authorset = new HashSet<>();
 
@@ -30,18 +31,19 @@ public class CommentCount {
 
             if(!subredditset.contains(subreddit)){   //count total # of subreddit
                 subredditset.add(subreddit);
-                context.write(new Text("sumsubrredit"), one);
+                word.set("sumsubrredit");
+                context.write(word, one);
             }
-            String subredkey = "subr_" + subreddit;  // count # of comments/submissions per subreddit
-            context.write(new Text(subredkey), one);
+            word.set("subr_" + subreddit);  // count # of comments/submissions per subreddit
+            context.write(word, one);
 
             if (!authorset.contains(author)){  //count total # of author
                 authorset.add(author);
-                context.write(new Text("sumauthor"), one);
+                word.set("sumauthor");
+                context.write(word, one);
             }
-
-            String authkey = "auth_" + author;  //count # of comments/submissions per author
-            context.write(new Text(authkey), one);
+            word.set("auth_" + author);  //count # of comments/submissions per author
+            context.write(word, one);
         }
     }
 
@@ -65,13 +67,14 @@ public class CommentCount {
             String keytext = key.toString().substring(5);
 
             if (prefix.equals("suma"))
-                mos.write("AuthorAmount", new Text("authorAmount"), result);
+                mos.write("AuthorAmount", new Text("author_amount"), result);
             else if (prefix.equals("sums"))
-                mos.write("SubredditAmount", new Text("subredditAmount"), result);
+                mos.write("SubredditAmount", new Text("subreddit_amount"), result);
             else if (prefix.equals("subr"))
                 mos.write("subreddit", new Text(keytext), result);
             else
                 mos.write("author", new Text(keytext), result);
+
         }
 
         @Override
@@ -80,22 +83,22 @@ public class CommentCount {
         }
     }
 
-//    public static void main( String[] args) throws Exception {
-//        Configuration conf = new Configuration();
-//
-//        Job job = Job.getInstance(conf, "Count subreddit & author");
-//        job.setJarByClass(CommentCount.class);
-//        job.setMapperClass(CommentCount.NormalizeCountMapper.class);
-//        job.setCombinerClass(CommentCount.NormalizeCountReducer.class);
-//        job.setReducerClass(CommentCount.NormalizeCountReducer.class);
-//        job.setOutputKeyClass(Text.class);
-//        job.setOutputValueClass(IntWritable.class);
-//        MultipleOutputs.addNamedOutput(job, "subreddit", TextOutputFormat.class, Text.class, IntWritable.class);
-//        MultipleOutputs.addNamedOutput(job, "author", TextOutputFormat.class, Text.class, IntWritable.class);
-//        MultipleOutputs.addNamedOutput(job, "AuthorAmount", TextOutputFormat.class, Text.class, IntWritable.class);
-//        MultipleOutputs.addNamedOutput(job, "SubredditAmount", TextOutputFormat.class, Text.class, IntWritable.class);
-//        FileInputFormat.addInputPath(job, new Path(args[0]));
-//        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-//        System.exit(job.waitForCompletion(true) ? 0 : 1);
-//    }
+    public static void main( String[] args ) throws Exception {
+        Configuration conf = new Configuration();
+
+        Job job = Job.getInstance(conf, "Count subreddit & author");
+        job.setJarByClass(CommentCount.class);
+        job.setMapperClass(CommentCount.NormalizeCountMapper.class);
+        job.setCombinerClass(CommentCount.NormalizeCountReducer.class);
+        job.setReducerClass(CommentCount.NormalizeCountReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+        MultipleOutputs.addNamedOutput(job, "subreddit", TextOutputFormat.class, Text.class, IntWritable.class);
+        MultipleOutputs.addNamedOutput(job, "author", TextOutputFormat.class, Text.class, IntWritable.class);
+        MultipleOutputs.addNamedOutput(job, "AuthorAmount", TextOutputFormat.class, Text.class, IntWritable.class);
+        MultipleOutputs.addNamedOutput(job, "SubredditAmount", TextOutputFormat.class, Text.class, IntWritable.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
 }

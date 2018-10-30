@@ -162,22 +162,23 @@ public class WordCount
 		}
 	}
 
-    public static void main( String[] args ) throws Exception {
-    	Configuration conf = new Configuration();
-    	conf.set("swearwords", args[2]);
-
-    	Job job = Job.getInstance(conf, "Hatespeech level");
-	    job.setJarByClass(WordCount.class);
-	    job.setMapperClass(BadwordCountMapper.class);
-	    job.setCombinerClass(BadwordCountReducer.class);
-	    job.setReducerClass(BadwordCountReducer.class);
-	    job.setOutputKeyClass(Text.class);
-	    job.setOutputValueClass(IntWritable.class);
-	    MultipleOutputs.addNamedOutput(job, "subreddit", TextOutputFormat.class, Text.class, IntWritable.class);
-	    MultipleOutputs.addNamedOutput(job, "author", TextOutputFormat.class, Text.class, IntWritable.class);
-	    MultipleOutputs.addNamedOutput(job, "count", TextOutputFormat.class, Text.class, IntWritable.class);
-	    FileInputFormat.addInputPath(job, new Path(args[0]));
-	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-	    System.exit(job.waitForCompletion(true) ? 0 : 1);
-    }
+//    public static void main( String[] args ) throws Exception {
+//    	Configuration conf = new Configuration();
+//    	conf.set("swearwords", args[2]);
+//
+//    	Job job = Job.getInstance(conf, "Hatespeech level");
+//	    job.setJarByClass(WordCount.class);
+//	    job.setMapperClass(BadwordCountMapper.class);
+//	    job.setCombinerClass(BadwordCountReducer.class);
+//	    job.setReducerClass(BadwordCountReducer.class);
+//	    job.setOutputKeyClass(Text.class);
+//	    job.setOutputValueClass(IntWritable.class);
+//	    //
+//	    MultipleOutputs.addNamedOutput(job, "subreddit", TextOutputFormat.class, Text.class, IntWritable.class);
+//	    MultipleOutputs.addNamedOutput(job, "author", TextOutputFormat.class, Text.class, IntWritable.class);
+//	    MultipleOutputs.addNamedOutput(job, "count", TextOutputFormat.class, Text.class, IntWritable.class);
+//	    FileInputFormat.addInputPath(job, new Path(args[0]));
+//	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+//	    System.exit(job.waitForCompletion(true) ? 0 : 1);
+//    }
 }
